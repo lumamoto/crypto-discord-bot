@@ -1,1 +1,1 @@
-# nigel-bot
+# Crypto Discord Bot
