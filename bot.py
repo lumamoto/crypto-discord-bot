@@ -1,109 +1,140 @@
-import os
-import random
-
 import discord
-from dotenv import load_dotenv
-from discord.ext import commands
-
+from discord.ext import tasks
+import os
 import requests
+from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+AV_API_KEY = os.getenv('AV_API_KEY')
 
-bot = commands.Bot(command_prefix='!')
+client = discord.Client()
 
-low_limit = 0.1
-high_limit = 1.0
-current_code = "DOGE"
+crypto_code = 'DOGE'
+min_rate = -1.0
+max_rate = -1.0
+count = 0
 
-@bot.event
-async def on_ready():
-    print(f'{bot.user.name} has connected to Discord!')
-    
-@bot.command(name='prices', help='Enter 1 low and 1 high number to be notified when the exchannge rate crosses either limit')
-async def set_prices(ctx, low, high):
-    low = float(low)
-    high = float(high)
-    if low <= 0 or high <= 0: # low and/or high are 0 or negative
-        await ctx.send(
-            f"🛑 Slow down! Make sure you're entering 2 prices that are **greater than 0**!"
-        )
-    elif low == high: # low and high are the same number
-        await ctx.send(
-            f"🛑 Whoa there! Make sure you're entering 2 **different** prices!"
-        )
-    elif low < high:
-        low_limit = low
-        high_limit = high
-        await ctx.send(
-            f"✅ Got it! I'll do my best to notify you when the current exchange rate drops below **{low_limit}** or raises above **{high_limit}**!"
-        )
-    else: # low > high
-        await ctx.send(
-            f"🛑 Hold up! When setting prices, make sure that the 1st number is **less than** the 2nd!"
-        )
+# Returns the current exchange rate for our cryptocurrency
+def get_curr_rate():
+    url = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=" + crypto_code + "&to_currency=USD&apikey=" + AV_API_KEY
+    response = requests.request("GET", url)
+    data = response.json()
+    curr_rate = float(data["Realtime Currency Exchange Rate"]["5. Exchange Rate"])
+    return curr_rate
 
-# @bot.event
-# async def on_command_error(ctx, error):
-#     if isinstance(error, commands.errors.MissingRequiredArgument):
-#         await ctx.send('Missing argument(s)')
-    
-@bot.command(name='code', help='Enter the code for the cryptocurrency you want to get notifications for (i.e. BTC, DOGE)')
-async def set_code(ctx, code):
-    # await ctx.send(
-    #     f"🛑 Hey, make sure to enter a code! Remember that I can only keep track of one code at a time."
-    # )
-
-    # check if code is valid
-    url = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=" + code + "&to_currency=USD&apikey=" + os.getenv('API_KEY')
+# Given a code, returns the full currency name if it is valid; None otherwise
+def get_currency_name(code):
+    url = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=" + code + "&to_currency=USD&apikey=" + AV_API_KEY
     response = requests.request("GET", url)
     data = response.json()
     if 'Error Message' not in data:
-        full_name = data["Realtime Currency Exchange Rate"]["2. From_Currency Name"]
-        current_code = code.upper()
-        await ctx.send(
-            f"✅ Okay, boss! I'll send you notifications about **{full_name}**, aka **{current_code}**!"
-        )
+        currency_name = data["Realtime Currency Exchange Rate"]["2. From_Currency Name"]
+        return currency_name
     else:
-        await ctx.send(
-            f"🛑 Hmmm... I'm sorry, but I don't know this code. Try entering a different one."
+        return None
+
+@client.event
+async def on_ready():
+    print(f'We have logged in as {client.user}')
+    check_rates.start()
+
+@client.event
+async def on_message(message):
+    global crypto_code
+
+    if message.author == client.user:
+        return
+
+    msg = message.content
+
+    # Displays the current exchange rate
+    if msg.startswith('!rate'):
+        rate = get_curr_rate()
+        await message.channel.send(
+            f"💸 The current exchange rate for {crypto_code} is **{rate}**!"
         )
     
-    # url = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=" + code + "&to_currency=USD&apikey=" + os.getenv('API_KEY')
-    # response = requests.request("GET", url)
-    # data = response.json()
-    # exchange_rate = float(data["Realtime Currency Exchange Rate"]["5. Exchange Rate"])
-    # if exchange_rate < low:
-    #     await ctx.send(
-    #         f'🔻 PRICE DROP! 🔻 The current exchange rate for DOGE is {exchange_rate}! Maybe buy?'
-    #     )
-    # elif exchange_rate > high:
-    #     await ctx.send(
-    #         f'🟢 PRICE SPIKE! 🟢 The current exchange rate for DOGE is {exchange_rate}! Maybe sell?'
-    #     )
+    # Sets the code for the cryptocurrency the user wants to follow
+    if msg.startswith('!setcode'):
+        code = msg.split('!setcode', 1)[1].strip()
+        # print(code)
+        currency_name = get_currency_name(code)
+        if currency_name:
+            crypto_code = code.upper()
+            await message.channel.send(
+                f"👍 Okay, boss! I'll send you notifications about **{currency_name}**, aka **{crypto_code}**!"
+            )
+        else:
+            await message.channel.send(
+                f"❌ Hmmm... Sorry, I don't know this code. Try entering a different one."
+            )
 
-bot.run(TOKEN)
+    # Sets the min and max rates at which the user wants to be notified
+    if msg.startswith('!setrange'):
+        range = msg.split('!setrange', 1)[1].strip().split()
+        min = float(range[0])
+        max = float(range[1])
+        if min <= 0 or max <= 0:
+            await message.channel.send(
+                f"❌ Whoa there, make sure you're entering 2 numbers that are **greater than 0**!"
+            )
+        elif min >= max:
+            await message.channel.send(
+                f"❌ Hold up, make sure that the 1st number is **less than** the 2nd!"
+            )
+        else:
+            min_rate = min
+            max_rate = max
+            await message.channel.send(
+                f"👍 Got it! I'll do my best to notify you when the exchange rate drops below **{min_rate}** or raises above **{max_rate}**!"
+            )
 
-# @bot.event
-# async def on_member_join(member):
-#     await member.create_dm()
-#     await member.dm_channel.send(
-#         f'Hi {member.name}, welcome to my Discord server!'
+# @tasks.loop(seconds=5)
+# async def check_rates():
+#     curr_rate = get_curr_rate()
+#     count += 1
+#     await message.channel.send(
+#         f'Count: {count}'
+#         # f'The current exchange rate for **{current_code}** is **{current_exchange_rate}**!'
 #     )
 
-# @bot.command(name='roll_dice', help='Simulates rolling dice.')
-# async def roll(ctx, number_of_dice: int, number_of_sides: int):
-#     dice = [
-#         str(random.choice(range(1, number_of_sides + 1)))
-#         for _ in range(number_of_dice)
-#     ]
-#     await ctx.send(', '.join(dice))
+client.run(TOKEN)
 
-# @bot.command(name='create-channel')
-# @commands.has_role('admin')
-# async def create_channel(ctx, channel_name='real-python'):
-#     guild = ctx.guild
-#     existing_channel = discord.utils.get(guild.channels, name=channel_name)
-#     if not existing_channel:
-#         print(f'Creating a new channel: {channel_name}')
-#         await guild.create_text_channel(channel_name)
+
+'''
+!prices <low> <high>
+Sets the low and high threshold points at which the user wants to be notified
+'''
+# @bot.command(name='prices', help='Enter 1 low and 1 high number to be notified when the exchange rate crosses either limit')
+# async def set_prices(ctx, low, high):
+
+
+
+# if exchange_rate < low:
+#     await ctx.send(
+#         f'🔻 PRICE DROP! 🔻 The current exchange rate for DOGE is {exchange_rate}! Maybe buy?'
+#     )
+# elif exchange_rate > high:
+#     await ctx.send(
+#         f'🟢 PRICE SPIKE! 🟢 The current exchange rate for DOGE is {exchange_rate}! Maybe sell?'
+#     )
+
+# @bot.event
+# async def send_alert(ctx):
+#     if current_exchange_rate < low_limit:
+#         ctx.send(
+#             f'⬇️⬇️ **PRICE DROP!** The current exchange rate for **{current_code}** is **{current_exchange_rate}**!'
+#         )
+#     elif current_exchange_rate > high_limit:
+#         ctx.send(
+#             f'⬆️⬆️ **PRICE SPIKE!** The current exchange rate for **{current_code}** is **{current_exchange_rate}**!'
+#         )
+
+
+# @tasks.loop(seconds=10)
+# async def check_rates(ctx):
+#     curr_rate = get_curr_rate()
+#     await ctx.send(
+#         f'The current exchange rate for **{current_code}** is **{current_exchange_rate}**!'
+#     )
