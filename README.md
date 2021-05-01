@@ -1,4 +1,4 @@
-# Crypto Discord Bot (Nigel)
+# Crypto Discord Bot (aka Nigel)
 
 ## About
 Nigel is a Discord bot that will keep you up-to-date on the exchange rates (in USD) for any cryptocurrency. 
@@ -11,7 +11,7 @@ Built with Python and the Alpha Vantage API. Hosted on Replit.
 
 Due to API limitations (500 requests/day), the bot can only keep track of one cryptocurrency.
 
-**Fun fact:** I decided to name the bot Nigel, after the humble stockbroker from Neopets. The site was a big part of my childhood, and it was my first exposure to how the stock market works.
+**Fun fact:** I decided to name the bot Nigel, after the [humble stockbroker from Neopets](https://bookofages.jellyneo.net/characters/411/). The site was a big part of my childhood, and it was my first exposure to how the stock market works.
 
 ## Getting Started
 After adding the bot to your Discord server:
