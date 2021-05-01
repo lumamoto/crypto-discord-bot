@@ -4,6 +4,7 @@ import os
 import requests
 from numbers import Number
 from dotenv import load_dotenv
+from keep_alive import keep_alive
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -152,4 +153,5 @@ def get_currency_name(code):
     else:
         return None
 
+keep_alive()
 client.run(TOKEN)
