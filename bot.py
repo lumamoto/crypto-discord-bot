@@ -96,7 +96,7 @@ async def on_message(message):
     # Sets the min and max rates at which the user wants to be notified
     if msg.startswith('!setrange'):
         range = msg.split('!setrange', 1)[1].strip().split()
-        if len(range) != 2 or not isinstance(range[0], Number) or not isinstance(range[1], Number):
+        if len(range) != 2 or any(c.isalpha() for c in range[0]) or any(c.isalpha() for c in range[1]):
             await message.channel.send(
                 f"❌ Slow down, you need to enter **2 numbers** (minimum and maximum) to set a range!"
             )
