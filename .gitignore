@@ -1,3 +1,4 @@
 .env
 .vscode
 coverage
+__pycache__
