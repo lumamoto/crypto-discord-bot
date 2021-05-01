@@ -16,7 +16,7 @@ Due to API limitations (500 requests/day), the bot can only keep track of one cr
 ## Getting Started
 After adding the bot to your Discord server:
 1. Type `!setcode <code>` to set the cryptocurrency you want to follow. The code should be the 3 or 4 letter symbol (i.e. DOGE, BTC).
-2. Type `!setrange <min> <max>` to set the minimum rate and maximum rate at which you want to be notified. If the exchange rate drops below the min or rises above the max, the bot will send a message.
+2. Type `!setrange <min> <max>` to set the minimum and maximum rates for which you want to be notified. If the exchange rate drops below the min or rises above the max, the bot will send a message.
 
 ## Commands
 | Command       | Parameters        |  Description    |
