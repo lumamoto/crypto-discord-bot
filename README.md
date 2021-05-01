@@ -27,6 +27,6 @@ After adding the bot to your Discord server:
 | **!setcode**  | `<code>`          | Set the crypto code you want to
 | **!setrange** | `<min> <max>`     | Set the range of rates at which you want to be notified
 
-## In Action
+## Screenshots
 ![Commands](./screenshots/commands.png)
 ![Status](./screenshots/status.png)
