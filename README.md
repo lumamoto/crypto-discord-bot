@@ -28,5 +28,8 @@ After adding the bot to your Discord server:
 | **!setrange** | `<min> <max>`     | Set the range of rates at which you want to be notified
 
 ## Screenshots
+### Setting Up
 ![Commands](./screenshots/commands.png)
+
+### Bot's Status
 ![Status](./screenshots/status.png)
