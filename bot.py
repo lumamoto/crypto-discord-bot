@@ -9,9 +9,7 @@ from keep_alive import keep_alive
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 AV_API_KEY = os.getenv('AV_API_KEY')
-
-CHANNEL_ID = 837862406411124776 # bot channel
-# CHANNEL_ID = 833426344855601233 # test channel
+CHANNEL_ID = os.getenv('CHANNEL_ID')
 
 client = discord.Client()
 
