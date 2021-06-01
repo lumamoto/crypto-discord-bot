@@ -32,7 +32,7 @@ DISCORD_TOKEN=<YOUR DISCORD TOKEN>
 AV_API_KEY=<YOUR ALPHA VANTAGE API KEY>
 CHANNEL_ID=<CHANNEL ID IN YOUR SERVER WHERE THE BOT WILL POST NOTIFICATIONS>
 ```
-5. Run: `python bot.py`
+5. Run: `python bot/main.py`
 6. To run continuously, follow the steps listed [here](https://www.freecodecamp.org/news/create-a-discord-bot-with-python/), under "How to Set Up the Bot to Run Continuously".
 
 ## First Use

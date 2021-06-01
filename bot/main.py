@@ -3,7 +3,9 @@ from discord.ext import tasks
 import os
 import requests
 from numbers import Number
+from dotenv import load_dotenv
 
+load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 AV_API_KEY = os.getenv('AV_API_KEY')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
@@ -148,5 +150,4 @@ def get_currency_name(code):
     else:
         return None
 
-keep_alive()
 client.run(TOKEN)
