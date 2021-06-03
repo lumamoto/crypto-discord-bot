@@ -13,8 +13,6 @@ CHANNEL_ID = os.getenv('CHANNEL_ID')
 
 client = discord.Client()
 
-crypto_code, min_rate, max_rate = get_settings()
-
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
@@ -150,7 +148,7 @@ def get_currency_name(code):
 
 # Gets crypto_code, min_rate, and max_rate from settings.json
 def get_settings():
-    with open('./settings.json', 'r') as openfile:
+    with open('bot/settings.json', 'r') as openfile:
         # Reading from json file
         data = json.load(openfile)
     return data['crypto_code'], data['min_rate'], data['max_rate']
@@ -170,7 +168,7 @@ def set_crypto_code(new_code):
     # Serializing json 
     json_object = json.dumps(data, indent = 4)
     # Writing to file
-    with open("./settings.json", "w") as outfile:
+    with open("bot/settings.json", "w") as outfile:
         outfile.write(json_object)
 
 # Sets new min and max rates
@@ -189,7 +187,10 @@ def set_rates(new_min, new_max):
     # Serializing json 
     json_object = json.dumps(data, indent = 4)
     # Writing to file
-    with open("./settings.json", "w") as outfile:
+    with open("bot/settings.json", "w") as outfile:
         outfile.write(json_object)
+
+# load settings
+crypto_code, min_rate, max_rate = get_settings()
 
 client.run(TOKEN)
