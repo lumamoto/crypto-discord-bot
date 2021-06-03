@@ -2,6 +2,7 @@ import discord
 from discord.ext import tasks
 import os
 import requests
+import json
 from numbers import Number
 from dotenv import load_dotenv
 
@@ -12,9 +13,7 @@ CHANNEL_ID = os.getenv('CHANNEL_ID')
 
 client = discord.Client()
 
-crypto_code = 'DOGE'
-min_rate = -1.0
-max_rate = -1.0
+crypto_code, min_rate, max_rate = get_settings()
 
 @client.event
 async def on_ready():
@@ -81,7 +80,7 @@ async def on_message(message):
         code = msg.split('!setcode', 1)[1].strip()
         currency_name = get_currency_name(code)
         if currency_name:
-            crypto_code = code.upper()
+            set_crypto_code(code)
             await message.channel.send(
                 f"👍 Okay, boss! I'll send you notifications about **{currency_name}**, aka **{crypto_code}**!"
             )
@@ -109,8 +108,7 @@ async def on_message(message):
                     f"❌ Hold up, make sure that the 1st number is **less than** the 2nd!"
                 )
             else:
-                min_rate = min
-                max_rate = max
+                set_rates(min, max)
                 await message.channel.send(
                     f"👍 Got it! I'll do my best to notify you when the exchange rate drops below **{min_rate}** or rises above **{max_rate}**!"
                 )
@@ -149,5 +147,49 @@ def get_currency_name(code):
         return currency_name
     else:
         return None
+
+# Gets crypto_code, min_rate, and max_rate from settings.json
+def get_settings():
+    with open('./settings.json', 'r') as openfile:
+        # Reading from json file
+        data = json.load(openfile)
+    return data['crypto_code'], data['min_rate'], data['max_rate']
+
+# Sets new crypto code
+def set_crypto_code(new_code):
+    global crypto_code, min_rate, max_rate
+
+    crypto_code = new_code.upper()
+
+    # Data to be written
+    data = {
+        "crypto_code": new_code,
+        "min_rate": min_rate,
+        "max_rate": max_rate
+    }
+    # Serializing json 
+    json_object = json.dumps(data, indent = 4)
+    # Writing to file
+    with open("./settings.json", "w") as outfile:
+        outfile.write(json_object)
+
+# Sets new min and max rates
+def set_rates(new_min, new_max):
+    global crypto_code, min_rate, max_rate
+
+    min_rate = new_min
+    max_rate = new_max
+
+    # Data to be written
+    data = {
+        "crypto_code": crypto_code,
+        "min_rate": new_min,
+        "max_rate": new_max
+    }
+    # Serializing json 
+    json_object = json.dumps(data, indent = 4)
+    # Writing to file
+    with open("./settings.json", "w") as outfile:
+        outfile.write(json_object)
 
 client.run(TOKEN)
