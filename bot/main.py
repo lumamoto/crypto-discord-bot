@@ -1,3 +1,7 @@
+# TODO:
+# set up github actions?
+# run a new build on heroku everytime settings.json is changed
+
 import discord
 from discord.ext import tasks
 import os
