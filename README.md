@@ -3,7 +3,7 @@
 ## About
 Nigel is a Discord bot that will keep you up-to-date on the exchange rates (in USD) for any cryptocurrency. 
 
-Built with Python and the Alpha Vantage API. Hosted on Heroku and running 24/7!
+Built with Python and the Alpha Vantage API. Hosted on Heroku.
 
 ### Features
 * Updates its status every 5 minutes to include the current exchange rate
